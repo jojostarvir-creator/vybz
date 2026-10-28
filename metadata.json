@@ -1,0 +1,6 @@
+{
+  "name": "VYBZ - Social & Anonymous Chat",
+  "description": "Application mobile sociale moderne : messages anonymes sécurisés, vrai chat privé en temps réel, Q&A interactif et découverte de communauté.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

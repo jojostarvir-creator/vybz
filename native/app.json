@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "VYBZ",
+    "slug": "vybz",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B0B10"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "app.vybz.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0B0B10"
+      },
+      "package": "app.vybz.mobile"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#8B5CF6"
+        }
+      ]
+    ],
+    "scheme": "vybz"
+  }
+}

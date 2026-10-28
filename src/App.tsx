@@ -28,10 +28,7 @@ import { Toast, ToastProps } from './components/ui/Toast';
 import { 
   Wifi, 
   Battery, 
-  Share2, 
-  Sparkles, 
-  MessageSquarePlus, 
-  RefreshCw,
+  MessageSquarePlus,
   X
 } from 'lucide-react';
 
@@ -239,40 +236,6 @@ export default function App() {
             <div className="w-32 h-1 bg-white/20 rounded-full" />
           </div>
         )}
-      </div>
-
-      {/* Floating Demo Helper Toolbar for Desktop Evaluation */}
-      <div className="hidden lg:flex items-center gap-2 mt-4 px-4 py-2 rounded-2xl bg-[#14141F] border border-white/10 text-xs text-gray-300 shadow-xl">
-        <span className="font-semibold text-white flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-[#8B5CF6]" />
-          <span>Contrôles Rapides VYBZ :</span>
-        </span>
-        <button
-          onClick={() => setIsAuthOpen(true)}
-          className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-white transition-colors flex items-center gap-1"
-        >
-          <RefreshCw className="w-3 h-3 text-[#EC4899]" />
-          <span>Changer d'utilisateur ({currentUser.displayName.split(' ')[0]})</span>
-        </button>
-        <button
-          onClick={() => setSendAnonTarget(currentUser)}
-          className="px-2.5 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 transition-colors flex items-center gap-1"
-        >
-          <Share2 className="w-3 h-3" />
-          <span>Tester l'envoi anonyme</span>
-        </button>
-        <button
-          onClick={() => setIsSettingsOpen(true)}
-          className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-white transition-colors"
-        >
-          Paramètres & Supabase
-        </button>
-        <button
-          onClick={() => setShowWelcome(!showWelcome)}
-          className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-white transition-colors"
-        >
-          {showWelcome ? 'Fermer l’intro' : 'Écran de bienvenue'}
-        </button>
       </div>
 
       {/* MODALS */}

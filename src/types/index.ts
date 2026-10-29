@@ -6,11 +6,12 @@ export interface UserProfile {
   id: string;
   username: string;
   displayName: string;
+  ghostName?: string;
   avatarUrl: string;
-  bio: string;
+  bio?: string;
   accentColor: string;
-  isVerified: boolean;
-  isOnline: boolean;
+  isVerified?: boolean;
+  isOnline?: boolean;
   lastSeenAt: string;
   createdAt: string;
   followersCount?: number;

@@ -26,7 +26,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
     return (
       p.displayName.toLowerCase().includes(search.toLowerCase()) ||
       p.username.toLowerCase().includes(search.toLowerCase()) ||
-      p.bio.toLowerCase().includes(search.toLowerCase())
+      (p.bio || '').toLowerCase().includes(search.toLowerCase())
     );
   });
 

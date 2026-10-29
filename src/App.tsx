@@ -5,32 +5,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from './lib/supabase';
-import { UserProfile, Story } from './types';
+import { UserProfile } from './types';
 import { TabDestination, BottomTabBar } from './components/layout/BottomTabBar';
 import { TopAppBar } from './components/layout/TopAppBar';
-import { WelcomeScreen } from './components/layout/WelcomeScreen';
 import { AuthModal } from './components/auth/AuthModal';
-import { CommunityFeed } from './components/feed/CommunityFeed';
-import { CreateStoryModal } from './components/feed/CreateStoryModal';
-import { StoryViewerModal } from './components/feed/StoryViewerModal';
-import { CreateQuestionModal } from './components/feed/CreateQuestionModal';
 import { AnonymousInbox } from './components/anonymous/AnonymousInbox';
 import { SendAnonymousModal } from './components/anonymous/SendAnonymousModal';
 import { ConversationList } from './components/chat/ConversationList';
 import { ChatView } from './components/chat/ChatView';
 import { NewChatModal } from './components/chat/NewChatModal';
-import { DiscoverView } from './components/discover/DiscoverView';
 import { ProfileView } from './components/profile/ProfileView';
 import { EditProfileModal } from './components/profile/EditProfileModal';
 import { SettingsModal } from './components/settings/SettingsModal';
 import { NotificationsView } from './components/notifications/NotificationsView';
 import { Toast, ToastProps } from './components/ui/Toast';
-import { 
-  Wifi, 
-  Battery, 
-  MessageSquarePlus,
-  X
-} from 'lucide-react';
+import { Wifi, Battery, X } from 'lucide-react';
 
 export default function App() {
   // Global Store Synchronization
@@ -49,20 +38,16 @@ export default function App() {
   const unreadChatCount = conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
 
   // App Navigation & Modals State
-  const [activeTab, setActiveTab] = useState<TabDestination>('feed');
+  const [activeTab, setActiveTab] = useState<TabDestination>('inbox');
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   
   const [isDeviceFrame, setIsDeviceFrame] = useState<boolean>(true);
-  const [showWelcome, setShowWelcome] = useState<boolean>(false);
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
-  const [isQuestionModalOpen, setIsQuestionModalOpen] = useState<boolean>(false);
   const [isNewChatOpen, setIsNewChatOpen] = useState<boolean>(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState<boolean>(false);
   const [sendAnonTarget, setSendAnonTarget] = useState<UserProfile | null>(null);
-  const [isCreateStoryOpen, setIsCreateStoryOpen] = useState<boolean>(false);
-  const [activeStoryViewer, setActiveStoryViewer] = useState<{ stories: Story[]; startIndex: number } | null>(null);
 
   // Toast System
   const [toast, setToast] = useState<ToastProps | null>(null);
@@ -138,97 +123,52 @@ export default function App() {
         />
 
         {/* Scrollable Main Content Area */}
-        <main className="flex-1 overflow-y-auto no-scrollbar p-3.5 sm:p-4 relative">
-          {showWelcome ? (
-            <WelcomeScreen
-              onStartSignUp={() => {
-                setShowWelcome(false);
-                setIsAuthOpen(true);
-              }}
-              onStartSignIn={() => {
-                setShowWelcome(false);
-                setIsAuthOpen(true);
-              }}
-              onStartDemo={() => {
-                setShowWelcome(false);
-                showToast('Bienvenue sur le mode démo de VYBZ ! ⚡', 'success');
-              }}
+        <main className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-3.5 sm:p-4 relative">
+          {activeTab === 'inbox' && (
+            <AnonymousInbox
+              onOpenShareModal={() => setActiveTab('profile')}
+              onOpenSendModalToSelf={() => setSendAnonTarget(currentUser)}
+              onShowToast={showToast}
             />
-          ) : (
-            <>
-              {/* TAB 1: FEED */}
-              {activeTab === 'feed' && (
-                <CommunityFeed
-                  onOpenQuestionModal={() => setIsQuestionModalOpen(true)}
-                  onOpenSendAnon={(targetUser) => setSendAnonTarget(targetUser)}
-                  onOpenCreateStory={() => setIsCreateStoryOpen(true)}
-                  onOpenStoryViewer={(stories, startIndex) => setActiveStoryViewer({ stories, startIndex })}
-                  onShowToast={showToast}
-                />
-              )}
+          )}
 
-              {/* TAB 2: ANONYMOUS INBOX */}
-              {activeTab === 'inbox' && (
-                <AnonymousInbox
-                  onOpenShareModal={() => setActiveTab('profile')}
-                  onOpenSendModalToSelf={() => setSendAnonTarget(currentUser)}
-                  onShowToast={showToast}
-                />
-              )}
+          {activeTab === 'chat' && (
+            activeConversationId ? (
+              <ChatView
+                conversationId={activeConversationId}
+                onBack={() => setActiveConversationId(null)}
+                onShowToast={showToast}
+              />
+            ) : (
+              <ConversationList
+                onSelectConversation={handleSelectConversation}
+                onOpenNewChat={() => setIsNewChatOpen(true)}
+              />
+            )
+          )}
 
-              {/* TAB 3: PRIVATE CHAT */}
-              {activeTab === 'chat' && (
-                activeConversationId ? (
-                  <ChatView
-                    conversationId={activeConversationId}
-                    onBack={() => setActiveConversationId(null)}
-                    onShowToast={showToast}
-                  />
-                ) : (
-                  <ConversationList
-                    onSelectConversation={handleSelectConversation}
-                    onOpenNewChat={() => setIsNewChatOpen(true)}
-                  />
-                )
-              )}
-
-              {/* TAB 4: DISCOVER */}
-              {activeTab === 'discover' && (
-                <DiscoverView
-                  onStartChat={handleStartNewChatWithUser}
-                  onSendAnon={(targetUser) => setSendAnonTarget(targetUser)}
-                  onShowToast={showToast}
-                />
-              )}
-
-              {/* TAB 5: PROFILE */}
-              {activeTab === 'profile' && (
-                <ProfileView
-                  onOpenEditProfile={() => setIsEditProfileOpen(true)}
-                  onOpenSettings={() => setIsSettingsOpen(true)}
-                  onOpenTestSend={() => setSendAnonTarget(currentUser)}
-                  onShowToast={showToast}
-                />
-              )}
-            </>
+          {activeTab === 'profile' && (
+            <ProfileView
+              onOpenEditProfile={() => setIsEditProfileOpen(true)}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+              onOpenTestSend={() => setSendAnonTarget(currentUser)}
+              onShowToast={showToast}
+            />
           )}
         </main>
 
         {/* Ergonomic Bottom Navigation Bar */}
-        {!showWelcome && (
-          <BottomTabBar
-            activeTab={activeTab}
-            onTabChange={(tab) => {
-              setActiveTab(tab);
-              // Reset chat view if clicking another tab
-              if (tab !== 'chat') {
-                setActiveConversationId(null);
-              }
-            }}
-            anonUnreadCount={unreadAnonCount}
-            chatUnreadCount={unreadChatCount}
-          />
-        )}
+        <BottomTabBar
+          activeTab={activeTab}
+          onTabChange={(tab) => {
+            setActiveTab(tab);
+            if (tab !== 'chat') {
+              setActiveConversationId(null);
+            }
+          }}
+          anonUnreadCount={unreadAnonCount}
+          chatUnreadCount={unreadChatCount}
+        />
 
         {/* iPhone Home Indicator Line */}
         {isDeviceFrame && (
@@ -260,23 +200,14 @@ export default function App() {
         />
       )}
 
-      {/* 3. Create Question Modal */}
-      <CreateQuestionModal
-        isOpen={isQuestionModalOpen}
-        onClose={() => setIsQuestionModalOpen(false)}
-        onSuccess={() => {
-          showToast('Question publiée dans le fil de la communauté !', 'success');
-        }}
-      />
-
-      {/* 4. New Chat Modal */}
+      {/* 3. New Chat Modal */}
       <NewChatModal
         isOpen={isNewChatOpen}
         onClose={() => setIsNewChatOpen(false)}
         onSelectUser={handleStartNewChatWithUser}
       />
 
-      {/* 5. Edit Profile Modal */}
+      {/* 4. Edit Profile Modal */}
       <EditProfileModal
         user={currentUser}
         isOpen={isEditProfileOpen}
@@ -286,7 +217,7 @@ export default function App() {
         }}
       />
 
-      {/* 6. Settings Modal */}
+      {/* 5. Settings Modal */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -297,7 +228,7 @@ export default function App() {
         onShowToast={showToast}
       />
 
-      {/* 7. Notifications Center Drawer / Modal */}
+      {/* 6. Notifications Center Drawer / Modal */}
       {isNotificationsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
           <div className="w-full max-w-md bg-[#131320] border border-white/10 rounded-3xl p-5 shadow-2xl relative max-h-[85vh] flex flex-col">
@@ -329,25 +260,6 @@ export default function App() {
         </div>
       )}
 
-      {/* 8. Create Story Modal */}
-      <CreateStoryModal
-        isOpen={isCreateStoryOpen}
-        onClose={() => setIsCreateStoryOpen(false)}
-        onSuccess={() => {
-          showToast('Votre story a été publiée pour 24h ! ⚡', 'success');
-        }}
-      />
-
-      {/* 9. Story Viewer Modal */}
-      {activeStoryViewer && (
-        <StoryViewerModal
-          stories={activeStoryViewer.stories}
-          initialIndex={activeStoryViewer.startIndex}
-          isOpen={Boolean(activeStoryViewer)}
-          onClose={() => setActiveStoryViewer(null)}
-          onShowToast={showToast}
-        />
-      )}
     </div>
   );
 }

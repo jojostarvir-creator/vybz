@@ -1,7 +1,7 @@
 import React from 'react';
-import { Home, Sparkles, MessageCircle, Compass, User } from 'lucide-react';
+import { Lock, MessageSquare, User } from 'lucide-react';
 
-export type TabDestination = 'feed' | 'inbox' | 'chat' | 'discover' | 'profile';
+export type TabDestination = 'inbox' | 'chat' | 'profile';
 
 interface BottomTabBarProps {
   activeTab: TabDestination;
@@ -18,36 +18,26 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({
 }) => {
   const tabs: { id: TabDestination; label: string; icon: React.ReactNode; badge?: number }[] = [
     {
-      id: 'feed',
-      label: 'Fil',
-      icon: <Home className="w-5 h-5" />
-    },
-    {
       id: 'inbox',
       label: 'Anonymes',
-      icon: <Sparkles className="w-5 h-5" />,
+      icon: <Lock className="w-5 h-5" />,
       badge: anonUnreadCount
     },
     {
       id: 'chat',
-      label: 'Chat',
-      icon: <MessageCircle className="w-5 h-5" />,
+      label: 'Chat Secret',
+      icon: <MessageSquare className="w-5 h-5" />,
       badge: chatUnreadCount
     },
     {
-      id: 'discover',
-      label: 'Découvrir',
-      icon: <Compass className="w-5 h-5" />
-    },
-    {
       id: 'profile',
-      label: 'Profil',
+      label: 'Mon Profil',
       icon: <User className="w-5 h-5" />
     }
   ];
 
   return (
-    <nav className="h-16 bg-[#0E0E18]/95 backdrop-blur-xl border-t border-white/10 grid grid-cols-5 items-center px-1 shrink-0 z-40 select-none">
+    <nav className="h-16 bg-[#0E0E18]/95 backdrop-blur-xl border-t border-white/10 grid grid-cols-3 items-center px-3 shrink-0 z-40 select-none">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
 

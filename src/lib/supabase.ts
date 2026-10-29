@@ -26,6 +26,11 @@ import {
 
 // Config keys
 const STORAGE_PREFIX = 'vybz_';
+type IdentityRevealRequest = {
+  requesterId: string;
+  recipientId: string;
+  status: 'pending' | 'approved';
+};
 const ENV_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const ENV_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
@@ -83,6 +88,8 @@ export function resetSupabaseConfig() {
 class ReactiveStore {
   private profiles: UserProfile[] = [];
   private currentUserId: string = 'user_maya';
+  private identityRevealRequests: IdentityRevealRequest[] = [];
+  private isVipDetective: boolean = false;
   private preferences: Record<string, UserPreferences> = {};
   private anonMessages: AnonymousMessage[] = [];
   private conversations: Conversation[] = [];
@@ -107,6 +114,12 @@ class ReactiveStore {
 
       const storedUser = localStorage.getItem(`${STORAGE_PREFIX}current_user`);
       this.currentUserId = storedUser || 'user_maya';
+
+      const storedRevealRequests = localStorage.getItem(`${STORAGE_PREFIX}identity_reveal_requests`);
+      this.identityRevealRequests = storedRevealRequests ? JSON.parse(storedRevealRequests) : [];
+
+      const storedVipStatus = localStorage.getItem(`${STORAGE_PREFIX}vip_detective`);
+      this.isVipDetective = storedVipStatus === 'true';
 
       const storedPrefs = localStorage.getItem(`${STORAGE_PREFIX}prefs`);
       this.preferences = storedPrefs ? JSON.parse(storedPrefs) : INITIAL_PREFERENCES;
@@ -137,6 +150,8 @@ class ReactiveStore {
     } catch {
       this.profiles = INITIAL_PROFILES;
       this.currentUserId = 'user_maya';
+      this.identityRevealRequests = [];
+      this.isVipDetective = false;
       this.preferences = INITIAL_PREFERENCES;
       this.anonMessages = INITIAL_ANON_MESSAGES;
       this.conversations = INITIAL_CONVERSATIONS;
@@ -153,6 +168,8 @@ class ReactiveStore {
     try {
       localStorage.setItem(`${STORAGE_PREFIX}profiles`, JSON.stringify(this.profiles));
       localStorage.setItem(`${STORAGE_PREFIX}current_user`, this.currentUserId);
+      localStorage.setItem(`${STORAGE_PREFIX}identity_reveal_requests`, JSON.stringify(this.identityRevealRequests));
+      localStorage.setItem(`${STORAGE_PREFIX}vip_detective`, String(this.isVipDetective));
       localStorage.setItem(`${STORAGE_PREFIX}prefs`, JSON.stringify(this.preferences));
       localStorage.setItem(`${STORAGE_PREFIX}anon`, JSON.stringify(this.anonMessages));
       localStorage.setItem(`${STORAGE_PREFIX}conversations`, JSON.stringify(this.conversations));
@@ -202,6 +219,102 @@ class ReactiveStore {
 
   public getProfileById(id: string): UserProfile | undefined {
     return this.profiles.find((p) => p.id === id);
+  }
+
+  public isUserRevealed(userId: string): boolean {
+    if (userId === this.currentUserId) return true;
+    return this.identityRevealRequests.some(
+      (request) =>
+        request.requesterId === this.currentUserId &&
+        request.recipientId === userId &&
+        request.status === 'approved'
+    );
+  }
+
+  public requestIdentityReveal(recipientId: string): boolean {
+    if (recipientId === this.currentUserId || this.isUserRevealed(recipientId)) return false;
+
+    const existingRequest = this.identityRevealRequests.find(
+      (request) =>
+        request.requesterId === this.currentUserId &&
+        request.recipientId === recipientId
+    );
+    if (existingRequest) return false;
+
+    this.identityRevealRequests.push({
+      requesterId: this.currentUserId,
+      recipientId,
+      status: 'pending'
+    });
+    this.persist();
+    return true;
+  }
+
+  public hasPendingIdentityRevealRequest(recipientId: string): boolean {
+    return this.identityRevealRequests.some(
+      (request) =>
+        request.requesterId === this.currentUserId &&
+        request.recipientId === recipientId &&
+        request.status === 'pending'
+    );
+  }
+
+  public getPendingIdentityRevealRequest(requesterId: string): boolean {
+    return this.identityRevealRequests.some(
+      (request) =>
+        request.requesterId === requesterId &&
+        request.recipientId === this.currentUserId &&
+        request.status === 'pending'
+    );
+  }
+
+  public hasApprovedIdentityRevealRequest(requesterId: string): boolean {
+    return this.identityRevealRequests.some(
+      (request) =>
+        request.requesterId === requesterId &&
+        request.recipientId === this.currentUserId &&
+        request.status === 'approved'
+    );
+  }
+
+  public consentToRevealIdentity(requesterId: string): boolean {
+    const request = this.identityRevealRequests.find(
+      (item) =>
+        item.requesterId === requesterId &&
+        item.recipientId === this.currentUserId &&
+        item.status === 'pending'
+    );
+    if (!request) return false;
+
+    request.status = 'approved';
+    this.persist();
+    return true;
+  }
+
+  public isVipMember(): boolean {
+    return this.isVipDetective;
+  }
+
+  public setVipDetective(status: boolean) {
+    this.isVipDetective = status;
+    this.persist();
+  }
+
+  public getGhostInfo(user: UserProfile) {
+    let sum = 0;
+    for (let i = 0; i < user.id.length; i++) {
+      sum = (sum * 37 + user.id.charCodeAt(i)) % 9000;
+    }
+    const ghostCode = 1000 + Math.abs(sum);
+    const isRevealed = this.isUserRevealed(user.id);
+
+    return {
+      ghostCode,
+      ghostName: user.ghostName || `Fantôme #${ghostCode}`,
+      ghostUsername: `@ghost_${ghostCode}`,
+      ghostAvatar: 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=crop&w=400&q=80',
+      isRevealed
+    };
   }
 
   public updateProfile(id: string, updates: Partial<UserProfile>): UserProfile {

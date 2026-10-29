@@ -26,7 +26,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   onUpdated
 }) => {
   const [displayName, setDisplayName] = useState(user.displayName);
-  const [bio, setBio] = useState(user.bio);
+  const [bio, setBio] = useState(user.bio || '');
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl);
   const [error, setError] = useState<string | null>(null);
 

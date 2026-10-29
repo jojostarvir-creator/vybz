@@ -11,7 +11,8 @@ import {
   UserX, 
   Smile, 
   Sparkles,
-  Bot
+  Bot,
+  Lock
 } from 'lucide-react';
 
 interface ChatViewProps {
@@ -37,6 +38,12 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const conv = db.getConversations().find((c) => c.id === conversationId);
   const otherMember = conv?.otherMember || db.getProfiles()[1];
   const messages = db.getChatMessages(conversationId);
+  const isRevealed = db.isUserRevealed(otherMember.id);
+  const ghostInfo = db.getGhostInfo(otherMember);
+  const displayName = isRevealed ? otherMember.displayName : ghostInfo.ghostName;
+  const hasPendingRevealRequest = db.hasPendingIdentityRevealRequest(otherMember.id);
+  const hasIncomingRevealRequest = db.getPendingIdentityRevealRequest(otherMember.id);
+  const hasSharedIdentity = db.hasApprovedIdentityRevealRequest(otherMember.id);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -84,16 +91,34 @@ export const ChatView: React.FC<ChatViewProps> = ({
       setIsTyping(false);
       const currentActiveId = db.getCurrentUser().id;
       db.setCurrentUser(otherMember.id);
-      db.sendChatMessage(conversationId, 'Message test en temps réel envoyé depuis le compte de ' + otherMember.displayName + ' ! 🚀');
+      db.sendChatMessage(conversationId, `Message test en temps réel envoyé depuis le compte de ${displayName} ! 🚀`);
       db.setCurrentUser(currentActiveId);
-      onShowToast(`Réponse reçue de ${otherMember.displayName}`, 'info');
+      onShowToast(`Réponse reçue de ${displayName}`, 'info');
     }, 1000);
+  };
+
+  const handleRequestReveal = () => {
+    const requested = db.requestIdentityReveal(otherMember.id);
+    onShowToast(
+      requested
+        ? 'Demande enregistrée dans cette démo locale. La personne doit donner son accord.'
+        : 'Une demande est déjà en attente ou cette identité est déjà partagée.',
+      'info'
+    );
+  };
+
+  const handleConsentToReveal = () => {
+    if (db.consentToRevealIdentity(otherMember.id)) {
+      onShowToast('Tu as accepté de partager ton identité avec cette personne.', 'success');
+    } else {
+      onShowToast('Cette demande n’est plus disponible.', 'error');
+    }
   };
 
   const handleBlock = () => {
     db.blockUser(otherMember.id);
     setShowMenu(false);
-    onShowToast(`${otherMember.displayName} a été bloqué(e).`, 'info');
+    onShowToast(`${displayName} a été bloqué(e).`, 'info');
     onBack();
   };
 
@@ -109,7 +134,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-[600px] max-h-[82vh] bg-[#0E0E17] rounded-3xl border border-white/10 overflow-hidden shadow-2xl relative">
+    <div className="flex flex-col h-full min-h-0 bg-[#0E0E17] rounded-3xl border border-white/10 overflow-hidden shadow-2xl relative">
       {/* Top Bar */}
       <div className="flex items-center justify-between px-4 py-3 bg-[#141422] border-b border-white/10 shrink-0">
         <div className="flex items-center gap-2.5">
@@ -121,33 +146,55 @@ export const ChatView: React.FC<ChatViewProps> = ({
             <ArrowLeft className="w-5 h-5" />
           </button>
 
-          <div className="relative">
-            <img
-              src={otherMember.avatarUrl}
-              alt={otherMember.displayName}
-              className="w-9 h-9 rounded-full object-cover border border-purple-500/30"
-            />
-            {otherMember.isOnline && (
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#141422]" />
+          <div className="flex items-center gap-2">
+            {isRevealed ? (
+              <img
+                src={otherMember.avatarUrl}
+                alt={otherMember.displayName}
+                className="w-9 h-9 rounded-full object-cover border border-purple-500/30"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-purple-950 flex items-center justify-center">
+                <Lock className="w-4 h-4 text-purple-400" />
+              </div>
             )}
-          </div>
 
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-semibold text-white text-xs">{otherMember.displayName}</span>
-              <span className="text-[10px] text-gray-400">@{otherMember.username}</span>
+            <div>
+              <p className="font-semibold text-white text-xs">{displayName}</p>
+              <p className="text-[10px] text-gray-400">
+                {isRevealed ? 'Identité partagée avec consentement' : 'Identité masquée jusqu’à son accord'}
+              </p>
             </div>
-            <p className="text-[10px] text-emerald-400 font-medium">
-              {otherMember.isOnline ? 'En ligne' : `Vu ${otherMember.lastSeenAt}`}
-            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-1">
+          {isRevealed ? (
+            <span className="px-2 py-1 text-[10px] font-semibold text-emerald-400">Accord donné ✓</span>
+          ) : hasSharedIdentity ? (
+            <span className="px-2 py-1 text-[10px] text-emerald-400">Identité partagée ✓</span>
+          ) : hasIncomingRevealRequest ? (
+            <button
+              onClick={handleConsentToReveal}
+              className="px-2.5 py-1.5 rounded-xl bg-emerald-600/80 hover:bg-emerald-600 text-white text-[10px] font-bold"
+            >
+              Partager mon identité
+            </button>
+          ) : hasPendingRevealRequest ? (
+            <span className="px-2 py-1 text-[10px] text-gray-400">En attente d’accord</span>
+          ) : (
+            <button
+              onClick={handleRequestReveal}
+              className="px-2.5 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 text-[10px] font-bold"
+            >
+              Demander l’accord
+            </button>
+          )}
+
           {/* Quick test reply generator */}
           <button
             onClick={handleSimulateReply}
-            title={`Simuler réponse instantanée de ${otherMember.displayName}`}
+            title={`Simuler réponse instantanée de ${displayName}`}
             className="px-2.5 py-1 rounded-lg bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-300 text-[11px] font-medium flex items-center gap-1 transition-colors"
           >
             <Bot className="w-3 h-3" />
@@ -169,7 +216,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                   className="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-300 hover:bg-rose-500/10 rounded-xl transition-colors text-left"
                 >
                   <UserX className="w-3.5 h-3.5" />
-                  <span>Bloquer {otherMember.displayName}</span>
+                  <span>Bloquer {displayName}</span>
                 </button>
                 <button
                   onClick={handleReport}
@@ -185,7 +232,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
       </div>
 
       {/* Messages Stream */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3 no-scrollbar">
         {/* Safe Encryption Notice */}
         <div className="text-center my-2">
           <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] text-gray-400">
@@ -240,7 +287,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
             <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center">
               <span className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] animate-ping" />
             </div>
-            <span>{otherMember.displayName} écrit un message...</span>
+            <span>{displayName} écrit un message...</span>
           </div>
         )}
 
@@ -282,7 +329,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          placeholder={`Message pour ${otherMember.displayName}...`}
+          placeholder={`Message pour ${displayName}...`}
           className="flex-1 h-10 px-3.5 rounded-2xl bg-[#0B0B10] border border-white/10 text-white text-xs placeholder:text-gray-500 focus:outline-none focus:border-[#8B5CF6] transition-colors"
         />
 

@@ -19,9 +19,12 @@ import { EditProfileModal } from './components/profile/EditProfileModal';
 import { SettingsModal } from './components/settings/SettingsModal';
 import { NotificationsView } from './components/notifications/NotificationsView';
 import { Toast, ToastProps } from './components/ui/Toast';
+import { usePwaInstall } from './lib/usePwaInstall';
 import { Wifi, Battery, X } from 'lucide-react';
 
 export default function App() {
+  const pwaInstall = usePwaInstall();
+
   // Global Store Synchronization
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -152,6 +155,9 @@ export default function App() {
               onOpenEditProfile={() => setIsEditProfileOpen(true)}
               onOpenSettings={() => setIsSettingsOpen(true)}
               onOpenTestSend={() => setSendAnonTarget(currentUser)}
+              installed={pwaInstall.installed}
+              canPromptInstall={pwaInstall.canPromptInstall}
+              onInstall={pwaInstall.promptInstall}
               onShowToast={showToast}
             />
           )}

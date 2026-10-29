@@ -13,11 +13,15 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { ShareLinkCard } from '../anonymous/ShareLinkCard';
+import { InstallAppCard } from '../pwa/InstallAppCard';
 
 interface ProfileViewProps {
   onOpenEditProfile: () => void;
   onOpenSettings: () => void;
   onOpenTestSend: () => void;
+  installed: boolean;
+  canPromptInstall: boolean;
+  onInstall: () => Promise<'accepted' | 'dismissed' | 'unavailable'>;
   onShowToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
 }
 
@@ -25,6 +29,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenEditProfile,
   onOpenSettings,
   onOpenTestSend,
+  installed,
+  canPromptInstall,
+  onInstall,
   onShowToast
 }) => {
   const [profileTab, setProfileTab] = useState<'posts' | 'received'>('posts');
@@ -112,6 +119,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       <ShareLinkCard
         user={currentUser}
         onOpenTestSend={onOpenTestSend}
+        onShowToast={onShowToast}
+      />
+
+      <InstallAppCard
+        installed={installed}
+        canPromptInstall={canPromptInstall}
+        onInstall={onInstall}
         onShowToast={onShowToast}
       />
 

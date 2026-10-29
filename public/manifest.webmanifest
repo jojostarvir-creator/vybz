@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "VYBZ - Social & Anonymous Chat",
+  "short_name": "VYBZ",
+  "description": "L’application sociale pour échanger anonymement et discuter en privé.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B0B10",
+  "theme_color": "#0B0B10",
+  "categories": ["social", "communication"],
+  "icons": [
+    {
+      "src": "./icons/vybz.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

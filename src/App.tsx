@@ -18,6 +18,7 @@ import { ProfileView } from './components/profile/ProfileView';
 import { EditProfileModal } from './components/profile/EditProfileModal';
 import { SettingsModal } from './components/settings/SettingsModal';
 import { NotificationsView } from './components/notifications/NotificationsView';
+import { InstallAppCard } from './components/pwa/InstallAppCard';
 import { Toast, ToastProps } from './components/ui/Toast';
 import { usePwaInstall } from './lib/usePwaInstall';
 import { Wifi, Battery, X } from 'lucide-react';
@@ -137,11 +138,21 @@ export default function App() {
         {/* Scrollable Main Content Area */}
         <main className="flex-1 min-h-0 overflow-y-auto no-scrollbar p-3.5 sm:p-4 relative">
           {activeTab === 'inbox' && (
-            <AnonymousInbox
-              onOpenShareModal={() => setActiveTab('profile')}
-              onOpenSendModalToSelf={() => setSendAnonTarget(currentUser)}
-              onShowToast={showToast}
-            />
+            <div className="space-y-4">
+              {!pwaInstall.installed && (
+                <InstallAppCard
+                  installed={pwaInstall.installed}
+                  canPromptInstall={pwaInstall.canPromptInstall}
+                  onInstall={pwaInstall.promptInstall}
+                  onShowToast={showToast}
+                />
+              )}
+              <AnonymousInbox
+                onOpenShareModal={() => setActiveTab('profile')}
+                onOpenSendModalToSelf={() => setSendAnonTarget(currentUser)}
+                onShowToast={showToast}
+              />
+            </div>
           )}
 
           {activeTab === 'chat' && (

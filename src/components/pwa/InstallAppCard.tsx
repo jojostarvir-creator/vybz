@@ -15,7 +15,7 @@ export const InstallAppCard: React.FC<InstallAppCardProps> = ({
   onInstall,
   onShowToast
 }) => {
-  const [showIosInstructions, setShowIosInstructions] = useState(false);
+  const [showInstallInstructions, setShowInstallInstructions] = useState(false);
 
   const handleInstall = async () => {
     if (installed) return;
@@ -32,16 +32,26 @@ export const InstallAppCard: React.FC<InstallAppCardProps> = ({
       return;
     }
 
-    if (isIosDevice()) {
-      setShowIosInstructions(true);
-      return;
-    }
-
-    onShowToast(
-      'Ouvrez le menu de votre navigateur, puis choisissez « Installer l’application » ou « Ajouter à l’écran d’accueil ».',
-      'info'
-    );
+    setShowInstallInstructions(true);
   };
+
+  const instructions = isIosDevice()
+    ? [
+        'Ouvrez VYBZ dans Safari, puis touchez le bouton Partager.',
+        'Choisissez « Sur l’écran d’accueil » dans le menu.',
+        'Touchez « Ajouter ». VYBZ apparaîtra comme une application.'
+      ]
+    : /Android/i.test(navigator.userAgent)
+      ? [
+          'Dans Chrome, touchez le menu ⋮ puis « Installer l’application » ou « Ajouter à l’écran d’accueil ».',
+          'Dans Samsung Internet, ouvrez le menu ☰ puis choisissez « Ajouter une page à » > « Écran d’accueil ».',
+          'Dans les autres navigateurs, cherchez « Installer » ou « Ajouter à l’écran d’accueil » dans le menu.'
+        ]
+      : [
+          'Ouvrez le menu de votre navigateur.',
+          'Choisissez « Installer l’application » ou « Ajouter à l’écran d’accueil ».',
+          'Si cette option n’existe pas, ouvrez VYBZ dans Safari sur iPhone ou Chrome sur Android.'
+        ];
 
   return (
     <>
@@ -65,33 +75,33 @@ export const InstallAppCard: React.FC<InstallAppCardProps> = ({
         </button>
       </section>
 
-      {showIosInstructions && (
+      {showInstallInstructions && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
           role="presentation"
-          onClick={() => setShowIosInstructions(false)}
+          onClick={() => setShowInstallInstructions(false)}
         >
           <section
             role="dialog"
             aria-modal="true"
-            aria-labelledby="ios-install-title"
+            aria-labelledby="install-instructions-title"
             className="w-full max-w-sm p-5 rounded-3xl bg-[#131320] border border-white/10 shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="w-11 h-11 mb-4 rounded-2xl bg-purple-500/15 text-purple-300 flex items-center justify-center">
               <Share className="w-5 h-5" />
             </div>
-            <h2 id="ios-install-title" className="text-base font-bold text-white">
-              Ajouter VYBZ à l’écran d’accueil
+            <h2 id="install-instructions-title" className="text-base font-bold text-white">
+              Installer VYBZ sur ce téléphone
             </h2>
             <ol className="mt-3 space-y-3 text-sm text-gray-300">
-              <li>1. Touchez le bouton Partager en bas de Safari.</li>
-              <li>2. Faites défiler le menu, puis touchez « Sur l’écran d’accueil ».</li>
-              <li>3. Touchez « Ajouter » pour terminer.</li>
+              {instructions.map((instruction, index) => (
+                <li key={instruction}>{index + 1}. {instruction}</li>
+              ))}
             </ol>
             <button
               type="button"
-              onClick={() => setShowIosInstructions(false)}
+              onClick={() => setShowInstallInstructions(false)}
               className="w-full mt-5 py-2.5 rounded-xl bg-purple-500 hover:bg-purple-400 text-white text-sm font-bold transition-colors"
             >
               Compris

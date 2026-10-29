@@ -44,7 +44,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabDestination>('inbox');
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   
-  const [isDeviceFrame, setIsDeviceFrame] = useState<boolean>(true);
+  const [isDeviceFrame, setIsDeviceFrame] = useState<boolean>(() => !pwaInstall.installed);
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
@@ -74,8 +74,10 @@ export default function App() {
     }
   };
 
+  const showDeviceFrame = isDeviceFrame && !pwaInstall.installed;
+
   return (
-    <div className="min-h-screen bg-[#07070A] text-white flex flex-col items-center justify-center p-0 md:p-6 overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-[#07070A] text-white flex flex-col items-center justify-center p-0 md:p-6 overflow-x-hidden">
       {/* Toast notification banner */}
       {toast && (
         <Toast
@@ -88,13 +90,19 @@ export default function App() {
       {/* Main Container: Device Shell OR Fluid Mobile View */}
       <div
         className={`w-full transition-all duration-300 flex flex-col ${
-          isDeviceFrame
+          pwaInstall.installed
+            ? 'h-[100dvh] overflow-hidden bg-[#0B0B10]'
+            : showDeviceFrame
             ? 'max-w-[430px] h-[100dvh] md:h-[890px] md:rounded-[52px] md:border-[10px] md:border-[#222230] md:shadow-[0_25px_70px_rgba(0,0,0,0.85)] relative overflow-hidden bg-[#0B0B10]'
             : 'max-w-2xl min-h-screen md:min-h-[90vh] md:rounded-3xl md:border md:border-white/10 md:shadow-2xl overflow-hidden bg-[#0B0B10]'
         }`}
+        style={pwaInstall.installed ? {
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: 'env(safe-area-inset-bottom)'
+        } : undefined}
       >
         {/* Mobile Device Status Bar (iPhone Dynamic Island Header) */}
-        {isDeviceFrame && (
+        {showDeviceFrame && (
           <div className="h-11 px-7 bg-[#0B0B10] flex items-center justify-between text-xs text-white shrink-0 select-none z-50 pt-1">
             <span className="font-semibold text-[13px] tracking-tight">09:41</span>
             
@@ -121,8 +129,9 @@ export default function App() {
           unreadNotifsCount={unreadNotifsCount}
           onOpenNotifications={() => setIsNotificationsOpen(true)}
           onOpenAuth={() => setIsAuthOpen(true)}
-          isDeviceFrame={isDeviceFrame}
+          isDeviceFrame={showDeviceFrame}
           onToggleDeviceFrame={() => setIsDeviceFrame(!isDeviceFrame)}
+          isStandalone={pwaInstall.installed}
         />
 
         {/* Scrollable Main Content Area */}
@@ -177,7 +186,7 @@ export default function App() {
         />
 
         {/* iPhone Home Indicator Line */}
-        {isDeviceFrame && (
+        {showDeviceFrame && (
           <div className="h-4 bg-[#0E0E18] flex items-center justify-center shrink-0">
             <div className="w-32 h-1 bg-white/20 rounded-full" />
           </div>

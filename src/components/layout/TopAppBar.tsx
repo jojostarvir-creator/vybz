@@ -9,6 +9,7 @@ interface TopAppBarProps {
   onOpenAuth: () => void;
   isDeviceFrame: boolean;
   onToggleDeviceFrame: () => void;
+  isStandalone?: boolean;
 }
 
 export const TopAppBar: React.FC<TopAppBarProps> = ({
@@ -17,7 +18,8 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
   onOpenNotifications,
   onOpenAuth,
   isDeviceFrame,
-  onToggleDeviceFrame
+  onToggleDeviceFrame,
+  isStandalone = false
 }) => {
   return (
     <header className="h-14 px-4 bg-[#0B0B10]/95 backdrop-blur-md border-b border-white/10 flex items-center justify-between shrink-0 z-30 select-none">
@@ -55,17 +57,19 @@ export const TopAppBar: React.FC<TopAppBarProps> = ({
       {/* Zone 3: Actions (Notifications & Device Frame Toggle) */}
       <div className="flex items-center gap-1">
         {/* Viewport Frame Toggle (Phone shell vs responsive) */}
-        <button
-          onClick={onToggleDeviceFrame}
-          title={isDeviceFrame ? 'Passer en plein écran' : 'Afficher le cadre smartphone'}
-          className="p-2 text-gray-400 hover:text-white rounded-xl hover:bg-white/5 transition-colors"
-        >
-          {isDeviceFrame ? (
-            <Monitor className="w-4 h-4 text-purple-400" />
-          ) : (
-            <Smartphone className="w-4 h-4" />
-          )}
-        </button>
+        {!isStandalone && (
+          <button
+            onClick={onToggleDeviceFrame}
+            title={isDeviceFrame ? 'Passer en plein écran' : 'Afficher le cadre smartphone'}
+            className="p-2 text-gray-400 hover:text-white rounded-xl hover:bg-white/5 transition-colors"
+          >
+            {isDeviceFrame ? (
+              <Monitor className="w-4 h-4 text-purple-400" />
+            ) : (
+              <Smartphone className="w-4 h-4" />
+            )}
+          </button>
+        )}
 
         {/* Notifications */}
         <button

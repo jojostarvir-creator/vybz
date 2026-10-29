@@ -12,6 +12,18 @@
   "categories": ["social", "communication"],
   "icons": [
     {
+      "src": "./icons/vybz-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/vybz-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
       "src": "./icons/vybz.svg",
       "sizes": "any",
       "type": "image/svg+xml",
